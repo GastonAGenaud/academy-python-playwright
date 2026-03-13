@@ -33,7 +33,6 @@ jobs:
             --html=report.html \
             --self-contained-html \
             -v \
-            --headed=false \
             --browser=chromium
 
       - name: Upload HTML report

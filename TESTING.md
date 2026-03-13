@@ -85,7 +85,7 @@ playwright show-trace test-results/.../trace.zip
 pytest tests/ --html=reports/e2e-report.html --self-contained-html
 
 # Sin abrir el navegador (headless), ideal para CI
-pytest tests/ --html=report.html --self-contained-html --headed=false
+pytest tests/ --html=report.html --self-contained-html
 ```
 
 ### Estructura
@@ -188,7 +188,7 @@ playwright show-trace test-results/.../trace.zip
 pytest tests/ --html=reports/e2e-report.html --self-contained-html
 
 # Without opening the browser (headless), ideal for CI
-pytest tests/ --html=report.html --self-contained-html --headed=false
+pytest tests/ --html=report.html --self-contained-html
 ```
 
 ### Structure
