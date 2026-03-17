@@ -25,7 +25,7 @@ Proyecto de automatización E2E orientado a capacitación, usando `pytest` + `pl
 - `.github/workflows/e2e.yml`
   - Pipeline de GitHub Actions.
   - Instala dependencias, instala navegador Chromium y ejecuta tests.
-  - Publica `report.html` como artifact (`e2e-report`).
+  - Publica `reports/report.html` como artifact (`e2e-report`), con tema Academy + dashboard y capturas en fallos.
 
 - `tests/test_login.py`
   - Casos E2E de autenticación.
@@ -44,6 +44,12 @@ Proyecto de automatización E2E orientado a capacitación, usando `pytest` + `pl
 - `utils/config.py`
   - Configuración global: `BASE_URL` y timeout por defecto.
 
+- `conftest.py`
+  - Título del reporte HTML, metadatos (BASE_URL, proyecto), dashboard (totales/duración) y captura en fallos.
+
+- `reports/academy_report.css`
+  - Estilos del reporte HTML (tema oscuro, tipografías, tablas).
+
 - `pytest.ini`
   - Configuración base de pytest:
     - argumentos por defecto
@@ -56,6 +62,25 @@ Proyecto de automatización E2E orientado a capacitación, usando `pytest` + `pl
 
 - `TESTING.md`
   - Guía operativa para correr tests, generar reportes HTML, usar Inspector/trace y entender limitaciones del modo UI en Python.
+
+- `ALLURE_SETUP.md`
+  - Guía de implementación de Allure Report paso a paso.
+
+- `docs/`
+  - Documentación técnica completa del proyecto. Ver [`docs/README.md`](docs/README.md) para el índice.
+
+### Documentación técnica
+
+La carpeta [`docs/`](docs/README.md) contiene la documentación completa:
+
+| Documento | Contenido |
+|-----------|-----------|
+| [`docs/01-PROJECT_STRUCTURE.md`](docs/01-PROJECT_STRUCTURE.md) | Árbol de archivos, stack, flujo de ejecución |
+| [`docs/02-PAGE_OBJECT_MODEL.md`](docs/02-PAGE_OBJECT_MODEL.md) | Patrón POM explicado en detalle |
+| [`docs/03-CONFTEST_AND_HOOKS.md`](docs/03-CONFTEST_AND_HOOKS.md) | conftest.py y cada hook de pytest |
+| [`docs/04-ALLURE_REPORT.md`](docs/04-ALLURE_REPORT.md) | Integración y uso de Allure |
+| [`docs/05-CI_CD.md`](docs/05-CI_CD.md) | Pipeline de GitHub Actions |
+| [`docs/exercises/`](docs/exercises/README.md) | Ejercicios prácticos |
 
 ### Métodos principales (LoginPage)
 
@@ -104,7 +129,20 @@ python -m pytest tests/test_login.py -v
 Generar reporte HTML:
 
 ```bash
-python -m pytest tests/ --html=reports/report.html --self-contained-html
+python -m pytest tests/ --html=reports/report.html --self-contained-html --css=reports/academy_report.css
+```
+
+Generar reporte Allure:
+
+```bash
+python -m pytest tests/ --alluredir=allure-results
+allure serve allure-results
+```
+
+Ambos reportes simultáneamente (como CI):
+
+```bash
+python -m pytest tests/ --html=reports/report.html --self-contained-html --css=reports/academy_report.css --alluredir=allure-results
 ```
 
 Debug con Playwright Inspector (PowerShell):
@@ -122,7 +160,7 @@ Para ver el reporte en GitHub Actions:
 1. Entrar al workflow run.
 2. Abrir job `e2e`.
 3. Descargar artifact `e2e-report`.
-4. Abrir `report.html`.
+4. Abrir `reports/report.html` (o el artifact descomprimido).
 
 ---
 
@@ -149,7 +187,7 @@ E2E automation project for training, using `pytest` + `playwright` with the **Pa
 - `.github/workflows/e2e.yml`
   - GitHub Actions pipeline.
   - Installs dependencies, Chromium browser, and runs tests.
-  - Publishes `report.html` as artifact (`e2e-report`).
+  - Publishes `reports/report.html` as artifact (`e2e-report`), with Academy theme + dashboard and failure screenshots.
 
 - `tests/test_login.py`
   - Login E2E cases.
@@ -168,6 +206,12 @@ E2E automation project for training, using `pytest` + `playwright` with the **Pa
 - `utils/config.py`
   - Global config: `BASE_URL` and default timeout.
 
+- `conftest.py`
+  - HTML report title, metadata (BASE_URL, project), dashboard (counts/duration), screenshot on failure.
+
+- `reports/academy_report.css`
+  - HTML report styles (dark theme, typography).
+
 - `pytest.ini`
   - Base pytest config:
     - default options
@@ -180,6 +224,25 @@ E2E automation project for training, using `pytest` + `playwright` with the **Pa
 
 - `TESTING.md`
   - How to run tests, generate HTML reports, use Inspector/trace, and UI mode limitations in Python.
+
+- `ALLURE_SETUP.md`
+  - Step-by-step Allure Report implementation guide.
+
+- `docs/`
+  - Full technical documentation. See [`docs/README.md`](docs/README.md) for the index.
+
+### Technical documentation
+
+The [`docs/`](docs/README.md) folder contains the full documentation:
+
+| Document | Content |
+|----------|---------|
+| [`docs/01-PROJECT_STRUCTURE.md`](docs/01-PROJECT_STRUCTURE.md) | File tree, stack, execution flow |
+| [`docs/02-PAGE_OBJECT_MODEL.md`](docs/02-PAGE_OBJECT_MODEL.md) | POM pattern in depth |
+| [`docs/03-CONFTEST_AND_HOOKS.md`](docs/03-CONFTEST_AND_HOOKS.md) | conftest.py and each pytest hook |
+| [`docs/04-ALLURE_REPORT.md`](docs/04-ALLURE_REPORT.md) | Allure integration and usage |
+| [`docs/05-CI_CD.md`](docs/05-CI_CD.md) | GitHub Actions pipeline |
+| [`docs/exercises/`](docs/exercises/README.md) | Hands-on exercises |
 
 ### Main methods (LoginPage)
 
@@ -228,7 +291,20 @@ python -m pytest tests/test_login.py -v
 Generate HTML report:
 
 ```bash
-python -m pytest tests/ --html=reports/report.html --self-contained-html
+python -m pytest tests/ --html=reports/report.html --self-contained-html --css=reports/academy_report.css
+```
+
+Generate Allure report:
+
+```bash
+python -m pytest tests/ --alluredir=allure-results
+allure serve allure-results
+```
+
+Both reports at once (like CI):
+
+```bash
+python -m pytest tests/ --html=reports/report.html --self-contained-html --css=reports/academy_report.css --alluredir=allure-results
 ```
 
 Debug with Playwright Inspector (PowerShell):
@@ -246,4 +322,4 @@ To view the report in GitHub Actions:
 1. Open the workflow run.
 2. Open the `e2e` job.
 3. Download the `e2e-report` artifact.
-4. Open `report.html`.
+4. Open `reports/report.html` (from the artifact).

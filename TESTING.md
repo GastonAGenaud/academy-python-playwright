@@ -29,13 +29,16 @@ pytest tests/ -v --headed --browser chromium
 Para generar un reporte HTML al finalizar (útil para CI o revisión manual):
 
 ```bash
-pytest tests/ --html=report.html --self-contained-html
+pytest tests/ --html=reports/report.html --self-contained-html --css=reports/academy_report.css
 ```
 
-- `report.html`: archivo de salida (puedes usar otra ruta, ej. `reports/e2e-report.html`).
-- `--self-contained-html`: incluye CSS y datos en un solo HTML; así puedes abrir el archivo sin carpeta de assets.
+- `reports/report.html`: salida del reporte.
+- `--self-contained-html`: un solo HTML portable (ideal para CI y artifacts).
+- `--css=reports/academy_report.css`: tema Academy (dashboard oscuro, tipografías, tablas).
 
-Abrir el reporte: abre `report.html` en el navegador (doble clic o `start report.html` en Windows).
+El `conftest.py` añade **título**, **metadatos** (BASE_URL, proyecto), **tarjetas** de resumen (passed/failed/skipped + duración) y **captura PNG** en tests que fallen (fixture `page`).
+
+Abrir el reporte: `reports/report.html` en el navegador.
 
 ### ¿Por qué no funciona `pytest --ui`?
 
@@ -82,10 +85,10 @@ playwright show-trace test-results/.../trace.zip
 
 ```bash
 # Reporte en una carpeta y con timestamp
-pytest tests/ --html=reports/e2e-report.html --self-contained-html
+pytest tests/ --html=reports/report.html --self-contained-html --css=reports/academy_report.css
 
 # Sin abrir el navegador (headless), ideal para CI
-pytest tests/ --html=report.html --self-contained-html
+pytest tests/ --html=reports/report.html --self-contained-html --css=reports/academy_report.css
 ```
 
 ### Estructura
@@ -101,7 +104,7 @@ Los tests usan la app de demo [Sauce Demo](https://www.saucedemo.com/) (`utils/c
 
 El workflow `.github/workflows/e2e.yml` ejecuta los E2E en cada push/PR a `main` o `master` y guarda el reporte HTML como artifact.
 
-**Ver el reporte:** en la run de Actions → job "e2e" → al final, en **Artifacts** descargá `e2e-report` (contiene `report.html`). El artifact se sube siempre (aunque falle el job) y se conserva 30 días.
+**Ver el reporte:** en la run de Actions → job "e2e" → **Artifacts** → `e2e-report` (incluye `reports/report.html`). Se sube siempre (`if: always()`) y se conserva 30 días.
 
 ---
 
@@ -132,13 +135,14 @@ pytest tests/ -v --headed --browser chromium
 To generate an HTML report when finished (useful for CI or manual review):
 
 ```bash
-pytest tests/ --html=report.html --self-contained-html
+pytest tests/ --html=reports/report.html --self-contained-html --css=reports/academy_report.css
 ```
 
-- `report.html`: output file (you can use another path, e.g. `reports/e2e-report.html`).
-- `--self-contained-html`: embeds CSS and data in a single HTML file so you can open it without an assets folder.
+- `reports/report.html`: report output.
+- `--self-contained-html`: single portable HTML.
+- `--css=reports/academy_report.css`: Academy theme.
 
-To open the report: open `report.html` in your browser (double-click or `start report.html` on Windows).
+`conftest.py` adds metadata, summary cards, and failure screenshots. Open `reports/report.html` in the browser.
 
 ### Why doesn't `pytest --ui` work?
 
@@ -185,10 +189,10 @@ playwright show-trace test-results/.../trace.zip
 
 ```bash
 # Report in a folder with timestamp
-pytest tests/ --html=reports/e2e-report.html --self-contained-html
+pytest tests/ --html=reports/report.html --self-contained-html --css=reports/academy_report.css
 
 # Without opening the browser (headless), ideal for CI
-pytest tests/ --html=report.html --self-contained-html
+pytest tests/ --html=reports/report.html --self-contained-html --css=reports/academy_report.css
 ```
 
 ### Structure
@@ -204,4 +208,4 @@ Tests use the demo app [Sauce Demo](https://www.saucedemo.com/) (`utils/config.p
 
 The workflow `.github/workflows/e2e.yml` runs E2E on every push/PR to `main` or `master` and saves the HTML report as an artifact.
 
-**View the report:** in the Actions run → "e2e" job → at the end, under **Artifacts** download `e2e-report` (contains `report.html`). The artifact is uploaded always (even if the job fails) and is kept for 30 days.
+**View the report:** Actions → `e2e` job → **Artifacts** → `e2e-report` (`reports/report.html`). Uploaded always; 30-day retention.

@@ -1,0 +1,215 @@
+/* Academy E2E — report theme (pytest-html overlay) */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap");
+
+:root {
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --surface2: #243044;
+  --text: #e8edf4;
+  --muted: #8b9cb3;
+  --accent: #c9a227;
+  --pass: #3d9a6e;
+  --fail: #e85d5d;
+  --skip: #d4a03c;
+  --border: rgba(201, 162, 39, 0.22);
+  --radius: 10px;
+}
+
+body {
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 14px;
+  min-width: 800px;
+  color: var(--muted);
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 100% -20%, rgba(201, 162, 39, 0.08), transparent),
+    radial-gradient(ellipse 80% 50% at 0% 100%, rgba(61, 154, 110, 0.06), transparent);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0 1.5rem 2rem;
+}
+
+h1 {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  margin: 1.25rem 0 0.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
+h2 {
+  font-family: "DM Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-top: 1.75rem;
+}
+
+p {
+  color: var(--muted);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Dashboard injected by conftest */
+.academy-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0 1.5rem;
+  max-width: 900px;
+}
+.academy-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  text-align: center;
+}
+.academy-card__value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+.academy-card__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-top: 0.35rem;
+}
+.academy-card--pass .academy-card__value { color: var(--pass); }
+.academy-card--fail .academy-card__value { color: var(--fail); }
+.academy-card--skip .academy-card__value { color: var(--skip); }
+.academy-card--total .academy-card__value { color: var(--accent); }
+
+.academy-banner {
+  background: linear-gradient(135deg, var(--surface2) 0%, var(--surface) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.academy-banner strong {
+  color: var(--text);
+}
+
+/* Environment table */
+#environment {
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+#environment td {
+  padding: 0.6rem 0.85rem;
+  border-color: var(--surface2);
+  color: var(--text);
+  vertical-align: top;
+}
+#environment tr:nth-child(odd) {
+  background: rgba(0, 0, 0, 0.15);
+}
+#environment ul {
+  color: var(--muted);
+}
+
+/* Result colors */
+span.passed,
+.passed .col-result {
+  color: var(--pass) !important;
+}
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result {
+  color: var(--skip) !important;
+}
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: var(--fail) !important;
+}
+
+/* Results table */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
+thead th {
+  background: var(--surface2);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--surface2);
+}
+tbody tr:hover {
+  background: rgba(201, 162, 39, 0.04);
+}
+tbody td {
+  padding: 0.65rem 0.85rem;
+  color: var(--text);
+}
+
+.collapsed td:not(.col-result):not(.col-name) {
+  color: var(--muted);
+}
+
+.filter__label {
+  color: var(--muted);
+}
+
+/* Summary line (pytest default) */
+span.passed,
+span.failed,
+span.skipped,
+span.error,
+span.xfailed,
+span.xpassed,
+span.rerun {
+  font-weight: 600;
+}
+
+/* Log / extra content */
+.log {
+  background: #0a0e12 !important;
+  color: #c5d4e0 !important;
+  border-radius: 6px;
+  border: 1px solid var(--surface2) !important;
+}
+
+/* Sortable headers */
+.sortable:hover {
+  color: var(--accent);
+}

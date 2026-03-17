@@ -1,44 +1,166 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Academy E2E — Pipeline de CI/CD
+#
+# Ejecuta la suite completa de tests E2E en cada push o PR a main/master.
+# Genera dos reportes en paralelo:
+#   1. pytest-html  → artifact descargable (reports/report.html)
+#   2. Allure       → publicado en GitHub Pages automáticamente
+#
+# Diagrama de flujo:
+#   checkout → setup python → pip install → playwright install
+#     → pytest (ambos reportes) → upload artifacts → allure generate → gh-pages
+# ─────────────────────────────────────────────────────────────────────────────
+
 name: E2E Tests
 
+# ─── Triggers ─────────────────────────────────────────────────────────────────
+# El workflow corre en dos eventos:
+#   - push directo a main/master (ej: merge de PR)
+#   - apertura/actualización de PR hacia main/master
+# Esto garantiza que ningún código llegue a la rama principal sin pasar los tests.
 on:
   push:
     branches: [main, master]
   pull_request:
     branches: [main, master]
 
+# ─── Permisos ─────────────────────────────────────────────────────────────────
+# Requeridos por peaceiris/actions-gh-pages para hacer push a la rama gh-pages.
+#   contents: write  → permite push a gh-pages
+#   pages: write     → necesario para publicar GitHub Pages
+#   id-token: write  → necesario para tokens OIDC modernos de GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   e2e:
+    # Ubuntu Latest es el runner estándar de GitHub Actions.
+    # Las dependencias del sistema de Playwright (--with-deps) están disponibles.
     runs-on: ubuntu-latest
 
     steps:
+
+      # ── Step 1: Checkout ────────────────────────────────────────────────────
+      # Clona el repositorio en el runner. Usa @v4 (versión major fija)
+      # para garantizar compatibilidad y evitar cambios inesperados.
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ── Step 2: Set up Python ───────────────────────────────────────────────
+      # Instala Python 3.12 (versión específica, no "latest", para reproducibilidad).
+      # La action configura también pip y el PATH automáticamente.
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
+      # ── Step 3: Install dependencies ────────────────────────────────────────
+      # Actualiza pip antes de instalar para evitar warnings de versión obsoleta.
+      # Instala: pytest, playwright, pytest-playwright, pytest-html, allure-pytest
+      # y sus dependencias transitivas (pytest-metadata, jinja2, etc.)
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # ── Step 4: Install Playwright browsers ─────────────────────────────────
+      # Los binarios de browsers NO se instalan con pip: requieren el CLI de Playwright.
+      # Solo instalamos Chromium (no Firefox/WebKit) para acelerar el step.
+      # --with-deps instala las librerías del sistema requeridas por Chromium en Linux
+      # (libglib, libnss, libatk, etc.) que no están en Ubuntu por defecto.
       - name: Install Playwright browsers
         run: playwright install chromium --with-deps
 
-      - name: Run E2E tests
+      # ── Step 5: Run E2E tests ────────────────────────────────────────────────
+      # Ejecuta toda la suite generando AMBOS reportes simultáneamente:
+      #   --alluredir=allure-results  → archivos JSON para Allure (Paso 8)
+      #   --html=reports/report.html  → reporte HTML de pytest-html (Paso 7)
+      #   --self-contained-html       → HTML portable (sin assets externos)
+      #   --css=reports/academy_report.css → tema visual Academy oscuro
+      #   -v                          → output detallado en los logs del workflow
+      #   --browser=chromium          → browser a usar (override del addopts si fuera otro)
+      #
+      # continue-on-error: true es CRÍTICO: sin esto, si un test falla (exit code 1),
+      # GitHub Actions cancela todos los steps siguientes y NUNCA se generan los reportes.
+      # Con esta opción el step se marca "failed" pero el job sigue ejecutándose.
+      - name: Run E2E tests (with Allure results)
         run: |
           pytest tests/ \
-            --html=report.html \
+            --alluredir=allure-results \
+            --html=reports/report.html \
             --self-contained-html \
+            --css=reports/academy_report.css \
             -v \
             --browser=chromium
+        continue-on-error: true
 
-      - name: Upload HTML report
+      # ── Step 6: Upload allure-results artifact ───────────────────────────────
+      # Sube la carpeta allure-results/ (archivos JSON crudos) como artifact.
+      # Útil para:
+      #   - regenerar el reporte localmente con: allure serve allure-results
+      #   - debug si la publicación en Pages falla
+      #   - compartir datos raw con el equipo
+      # if: always() → se ejecuta aunque el step de pytest haya fallado.
+      # retention-days: 30 → el artifact se borra automáticamente después de 30 días.
+      - name: Upload allure-results artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-report
-          path: report.html
+          name: allure-results
+          path: allure-results/
           retention-days: 30
+
+      # ── Step 7: Upload HTML report artifact ─────────────────────────────────
+      # Sube el reporte HTML de pytest-html como artifact descargable.
+      # Es un único archivo .html portable: se abre en el browser sin servidor.
+      # Descarga desde Actions → run → sección Artifacts → "e2e-html-report".
+      - name: Upload HTML report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-html-report
+          path: reports/report.html
+          retention-days: 30
+
+      # ── Step 8: Generate Allure HTML report ─────────────────────────────────
+      # La action simple-elf/allure-report-action:
+      #   - instala Java y el CLI de Allure automáticamente en el runner
+      #   - convierte los JSON de allure-results/ en un sitio HTML interactivo
+      #   - mantiene un historial acumulado (allure-history) entre ejecuciones
+      #     para mostrar el gráfico de tendencias en el Overview de Allure
+      #
+      # Parámetros:
+      #   allure_results  → donde están los JSON generados por pytest (Step 5)
+      #   allure_report   → donde se genera el HTML resultante (lo publica Step 9)
+      #   allure_history  → carpeta de historial persistente entre ejecuciones
+      #   keep_reports: 20 → cuántas ejecuciones históricas conservar
+      - name: Generate Allure HTML report
+        uses: simple-elf/allure-report-action@v1
+        if: always()
+        with:
+          allure_results: allure-results
+          allure_report: allure-report
+          allure_history: allure-history
+          keep_reports: 20
+
+      # ── Step 9: Publish Allure report to GitHub Pages ───────────────────────
+      # Hace push del directorio allure-report/ a la rama gh-pages del repositorio.
+      # GitHub Pages sirve automáticamente ese contenido como sitio estático en:
+      #   https://<usuario>.github.io/<nombre-del-repo>/
+      #
+      # Para activar GitHub Pages:
+      #   Settings → Pages → Source → Deploy from branch → gh-pages → /root
+      #
+      # Parámetros:
+      #   github_token    → token autogenerado por Actions (no requiere configuración)
+      #   publish_branch  → la rama de destino (la crea si no existe)
+      #   publish_dir     → el directorio local a publicar
+      - name: Publish Allure report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-report

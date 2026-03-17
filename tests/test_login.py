@@ -1,11 +1,17 @@
 """Login end-to-end tests following Page Object Model conventions."""
 
+import allure
 import pytest
 
 from data.users import INVALID_USER, LOCKED_USER, STANDARD_USER
 from pages.login_page import LoginPage
 
 
+@allure.epic("SauceDemo E2E")
+@allure.feature("Login")
+@allure.story("Login exitoso con usuario estándar")
+@allure.severity(allure.severity_level.CRITICAL)
+@allure.title("Usuario estándar puede iniciar sesión y accede al inventario")
 def test_valid_login(page):
     """Validate that a standard user can access the inventory page."""
     login_page = LoginPage(page)
@@ -16,6 +22,11 @@ def test_valid_login(page):
     login_page.assert_inventory_loaded()
 
 
+@allure.epic("SauceDemo E2E")
+@allure.feature("Login")
+@allure.story("Manejo de errores en login")
+@allure.severity(allure.severity_level.NORMAL)
+@allure.title("Login inválido muestra mensaje de error correcto")
 @pytest.mark.parametrize(
     ("user_data", "expected_error"),
     [

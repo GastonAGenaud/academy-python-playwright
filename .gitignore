@@ -201,11 +201,16 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# E2E generated artifacts
+# E2E generated artifacts (keep reports/academy_report.css in repo)
 report.html
-reports/
+reports/*
+!reports/academy_report.css
+!reports/PYTEST_HTML_REPORT.md
 playwright-report/
 test-results/
+allure-results/
+allure-report/
+allure-history/
 
 # Marimo
 marimo/_static/
